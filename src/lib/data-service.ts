@@ -1,12 +1,14 @@
+
 // This file provides functions to fetch data from the application's API routes.
 // It is intended to be used by both client and server components.
 
 import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 // A helper function to make API requests and handle errors.
 async function fetchAPI(path: string, options: RequestInit = {}) {
-  // Use relative path for API calls, works for both client and server.
-  const url = `/api/${path}`;
+  const url = `${BASE_URL}/api/${path}`;
   try {
     const res = await fetch(url, {
       ...options,
@@ -24,7 +26,6 @@ async function fetchAPI(path: string, options: RequestInit = {}) {
       throw new Error(`Failed to fetch ${path}`);
     }
     
-    // For DELETE requests, there might not be a body
     if (res.status === 204 || res.headers.get('content-length') === '0') {
       return null;
     }
