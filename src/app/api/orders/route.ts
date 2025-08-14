@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOrdersHandler } from '@/lib/data-handler';
+import type { Order } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'orders.json');
+
+async function getOrdersHandler(): Promise<Order[]> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
 
 export async function GET(req: NextRequest) {
   try {

@@ -1,6 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getCharacterSeriesByIdHandler, saveCharacterSeriesHandler, deleteCharacterSeriesHandler } from '@/lib/data-handler';
+import type { CharacterSeries } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'characterSeries.json');
+
+async function getCharacterSeriesHandler(): Promise<CharacterSeries[]> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
+
+async function getCharacterSeriesByIdHandler(id: string): Promise<CharacterSeries | null> {
+    const allSeries = await getCharacterSeriesHandler();
+    return allSeries.find(s => s.id === id) || null;
+}
+
+async function saveCharacterSeriesHandler(seriesData: Omit<CharacterSeries, 'id'>, id?: string): Promise<CharacterSeries> {
+    const allSeries = await getCharacterSeriesHandler();
+    if (id) {
+        const index = allSeries.findIndex(s => s.id === id);
+        if (index === -1) throw new Error('Series not found');
+        const updatedSeries = { ...allSeries[index], ...seriesData };
+        allSeries[index] = updatedSeries;
+        await fs.writeFile(filePath, JSON.stringify(allSeries, null, 2), 'utf8');
+        return updatedSeries;
+    } else {
+        const newSeries: CharacterSeries = { id: `series_${Date.now()}`, ...seriesData };
+        allSeries.push(newSeries);
+        await fs.writeFile(filePath, JSON.stringify(allSeries, null, 2), 'utf8');
+        return newSeries;
+    }
+}
+
+async function deleteCharacterSeriesHandler(id: string): Promise<void> {
+    const allSeries = await getCharacterSeriesHandler();
+    const filtered = allSeries.filter(s => s.id !== id);
+    if (allSeries.length === filtered.length) throw new Error('Series not found');
+    await fs.writeFile(filePath, JSON.stringify(filtered, null, 2), 'utf8');
+}
+
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

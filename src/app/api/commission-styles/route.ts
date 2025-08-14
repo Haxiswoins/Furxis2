@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getCommissionStylesHandler, saveCommissionStyleHandler } from '@/lib/data-handler';
+import type { CommissionStyle } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'commissionStyles.json');
+
+async function getCommissionStylesHandler(): Promise<CommissionStyle[]> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
+
+async function saveCommissionStyleHandler(data: Omit<CommissionStyle, 'id'>, id?: string): Promise<CommissionStyle> {
+    const styles = await getCommissionStylesHandler();
+    if (id) {
+        const index = styles.findIndex(s => s.id === id);
+        if (index === -1) throw new Error('Commission style not found');
+        const updatedStyle = { ...styles[index], ...data };
+        styles[index] = updatedStyle;
+        await fs.writeFile(filePath, JSON.stringify(styles, null, 2), 'utf8');
+        return updatedStyle;
+    } else {
+        const newStyle: CommissionStyle = { id: `style_${Date.now()}`, ...data };
+        styles.push(newStyle);
+        await fs.writeFile(filePath, JSON.stringify(styles, null, 2), 'utf8');
+        return newStyle;
+    }
+}
 
 export async function GET() {
   try {

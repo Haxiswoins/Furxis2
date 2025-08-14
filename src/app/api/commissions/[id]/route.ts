@@ -1,6 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getCommissionOptionByIdHandler, saveCommissionOptionHandler, deleteCommissionOptionHandler } from '@/lib/data-handler';
+import type { CommissionOption } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'commissionOptions.json');
+
+async function getCommissionOptionsHandler(): Promise<CommissionOption[]> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
+
+async function getCommissionOptionByIdHandler(id: string): Promise<CommissionOption | null> {
+    const options = await getCommissionOptionsHandler();
+    return options.find(o => o.id === id) || null;
+}
+
+async function saveCommissionOptionHandler(data: Omit<CommissionOption, 'id'>, id?: string): Promise<CommissionOption> {
+    const options = await getCommissionOptionsHandler();
+    if (id) {
+        const index = options.findIndex(o => o.id === id);
+        if (index === -1) throw new Error('Commission option not found');
+        const updatedOption = { ...options[index], ...data };
+        options[index] = updatedOption;
+        await fs.writeFile(filePath, JSON.stringify(options, null, 2), 'utf8');
+        return updatedOption;
+    } else {
+        const newOption: CommissionOption = { id: `comm_${Date.now()}`, ...data };
+        options.push(newOption);
+        await fs.writeFile(filePath, JSON.stringify(options, null, 2), 'utf8');
+        return newOption;
+    }
+}
+
+async function deleteCommissionOptionHandler(id: string): Promise<void> {
+    const options = await getCommissionOptionsHandler();
+    const filtered = options.filter(o => o.id !== id);
+    if (options.length === filtered.length) throw new Error('Commission option not found');
+    await fs.writeFile(filePath, JSON.stringify(filtered, null, 2), 'utf8');
+}
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

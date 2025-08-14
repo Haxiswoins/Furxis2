@@ -1,6 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getOrderByIdHandler, updateOrderHandler, deleteOrderHandler } from '@/lib/data-handler';
+import type { Order } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+import { sendEmail } from '@/ai/flows/send-email-flow';
+import { getSiteContent } from '@/lib/data-service';
+import { getContracts } from '@/lib/data-service';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'orders.json');
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+async function getOrdersHandler(): Promise<Order[]> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
+
+async function getOrderByIdHandler(id: string): Promise<Order | null> {
+    const orders = await getOrdersHandler();
+    return orders.find(o => o.id === id) || null;
+}
+
+async function deleteOrderHandler(id: string): Promise<void> {
+    const orders = await getOrdersHandler();
+    const filtered = orders.filter(o => o.id !== id);
+    if (orders.length === filtered.length) throw new Error('Order not found');
+    await fs.writeFile(filePath, JSON.stringify(filtered, null, 2), 'utf8');
+}
+
+async function updateOrderHandler(id: string, data: Partial<Order>): Promise<Order> {
+    const orders = await getOrdersHandler();
+    const index = orders.findIndex(o => o.id === id);
+    if (index === -1) throw new Error('Order not found');
+
+    const originalOrder = orders[index];
+    const updatedOrder = { ...originalOrder, ...data };
+    orders[index] = updatedOrder;
+
+    if (originalOrder.status !== '待确认' && updatedOrder.status === '待确认' && updatedOrder.orderType === '委托订单') {
+         try {
+            const contracts = await getContracts();
+            const userEmail = updatedOrder.applicationData?.email;
+            
+            if(contracts.commissionConfirmationEmail && userEmail) {
+                let emailHtml = contracts.commissionConfirmationEmail.replace('{productName}', updatedOrder.productName);
+                await sendEmail({
+                    to: userEmail,
+                    from: 'notification@suitopia.club',
+                    subject: `您的委托申请已通过初审！`,
+                    html: emailHtml
+                });
+            }
+         } catch(e) {
+            console.error("Failed to send commission confirmation email:", e);
+         }
+    }
+    await fs.writeFile(filePath, JSON.stringify(orders, null, 2), 'utf8');
+    return updatedOrder;
+}
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

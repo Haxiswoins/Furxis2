@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getContractsHandler, saveContractsHandler } from '@/lib/data-handler';
 import type { Contracts } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+const jsonDirectory = path.join(process.cwd(), 'data');
+const filePath = path.join(jsonDirectory, 'contracts.json');
+
+async function getContractsHandler(): Promise<Contracts> {
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+}
+
+async function saveContractsHandler(data: Contracts): Promise<void> {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+}
+
 
 export async function GET() {
   try {
