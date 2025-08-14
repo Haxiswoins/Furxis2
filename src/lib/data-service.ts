@@ -1,16 +1,17 @@
 import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+// The BASE_URL is no longer needed here as we will use relative paths
+// that will be correctly handled by Next.js on both client and server.
 
 async function fetchAPI(path: string, options: RequestInit = {}) {
-  const url = `${BASE_URL}/api/${path}`;
+  const url = `/api/${path}`; // Use relative path
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
-    cache: 'no-store', // Always fetch fresh data
+    cache: 'no-store',
   });
 
   if (!res.ok) {
@@ -18,7 +19,6 @@ async function fetchAPI(path: string, options: RequestInit = {}) {
     console.error(`API Error (${res.status}) on ${path}:`, errorBody);
     throw new Error(`Failed to fetch ${path}`);
   }
-  // For DELETE requests, there might not be a body
   if (res.status === 204 || res.headers.get('content-length') === '0') {
     return null;
   }
