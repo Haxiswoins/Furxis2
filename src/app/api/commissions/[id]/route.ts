@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import path from 'path';
@@ -9,20 +8,21 @@ const jsonDirectory = path.join(process.cwd(), 'data');
 const filePath = path.join(jsonDirectory, 'commissionOptions.json');
 
 async function readData(): Promise<CommissionOption[]> {
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(fileContents);
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return [];
+    try {
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(fileContents);
+    } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            return [];
+        }
+        throw error;
     }
-    throw error;
-  }
 }
 
 async function writeData(data: CommissionOption[]): Promise<void> {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
+
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {

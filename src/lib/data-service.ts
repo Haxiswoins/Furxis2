@@ -1,10 +1,7 @@
-
 import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
-import { sendEmail } from '@/ai/flows/send-email-flow';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-// Helper function for API requests
 async function fetchAPI(path: string, options: RequestInit = {}) {
   const url = `${BASE_URL}/api/${path}`;
   const res = await fetch(url, {
@@ -13,7 +10,9 @@ async function fetchAPI(path: string, options: RequestInit = {}) {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    cache: 'no-store', // Always fetch fresh data
   });
+
   if (!res.ok) {
     const errorBody = await res.text();
     console.error(`API Error (${res.status}) on ${path}:`, errorBody);
@@ -25,7 +24,6 @@ async function fetchAPI(path: string, options: RequestInit = {}) {
   }
   return res.json();
 }
-
 
 // Site Content
 export async function getSiteContent(): Promise<SiteContent | null> {
@@ -45,7 +43,6 @@ export async function saveContracts(contracts: Contracts): Promise<void> {
     await fetchAPI('contracts', { method: 'POST', body: JSON.stringify(contracts) });
 }
 
-
 // Character Series
 export async function getCharacterSeries(): Promise<CharacterSeries[]> {
     return fetchAPI('character-series');
@@ -60,14 +57,11 @@ export async function getCharacterSeriesByName(name: string): Promise<CharacterS
     return allSeries.find(s => s.name === name) || null;
 }
 
-export async function saveCharacterSeries(series: Omit<CharacterSeries, 'id'>, id?: string): Promise<string> {
-    if (id) {
-        await fetchAPI(`character-series/${id}`, { method: 'PUT', body: JSON.stringify(series) });
-        return id;
-    } else {
-        const newSeries = await fetchAPI('character-series', { method: 'POST', body: JSON.stringify(series) });
-        return newSeries.id;
-    }
+export async function saveCharacterSeries(seriesData: Omit<CharacterSeries, 'id'>, id?: string): Promise<string> {
+    const method = id ? 'PUT' : 'POST';
+    const path = id ? `character-series/${id}` : 'character-series';
+    const result = await fetchAPI(path, { method, body: JSON.stringify(seriesData) });
+    return result.id;
 }
 
 export async function deleteCharacterSeries(id: string): Promise<void> {
@@ -85,7 +79,7 @@ export async function getCharactersBySeriesId(seriesId: string): Promise<Charact
 }
 
 export async function getCharacterById(id: string): Promise<Character | null> {
-  return fetchAPI(`characters/${id}`);
+    return fetchAPI(`characters/${id}`);
 }
 
 export async function getCharacterByName(name: string): Promise<Character | null> {
@@ -94,19 +88,15 @@ export async function getCharacterByName(name: string): Promise<Character | null
 }
 
 export async function saveCharacter(character: Omit<Character, 'id'>, id?: string): Promise<string> {
-  if (id) {
-    await fetchAPI(`characters/${id}`, { method: 'PUT', body: JSON.stringify(character) });
-    return id;
-  } else {
-    const newChar = await fetchAPI('characters', { method: 'POST', body: JSON.stringify(character) });
-    return newChar.id;
-  }
+  const method = id ? 'PUT' : 'POST';
+  const path = id ? `characters/${id}` : 'characters';
+  const newChar = await fetchAPI(path, { method, body: JSON.stringify(character) });
+  return newChar.id;
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
   await fetchAPI(`characters/${id}`, { method: 'DELETE' });
 }
-
 
 // Commission Options
 export async function getCommissionOptions(): Promise<CommissionOption[]> {
@@ -123,13 +113,10 @@ export async function getCommissionOptionByName(name: string): Promise<Commissio
 }
 
 export async function saveCommissionOption(commissionOption: Omit<CommissionOption, 'id'>, id?: string): Promise<string> {
-    if (id) {
-        await fetchAPI(`commissions/${id}`, { method: 'PUT', body: JSON.stringify(commissionOption) });
-        return id;
-    } else {
-        const newOption = await fetchAPI('commissions', { method: 'POST', body: JSON.stringify(commissionOption) });
-        return newOption.id;
-    }
+    const method = id ? 'PUT' : 'POST';
+    const path = id ? `commissions/${id}` : 'commissions';
+    const newOption = await fetchAPI(path, { method, body: JSON.stringify(commissionOption) });
+    return newOption.id;
 }
 
 export async function deleteCommissionOption(id: string): Promise<void> {
@@ -137,8 +124,12 @@ export async function deleteCommissionOption(id: string): Promise<void> {
 }
 
 // Commission Styles
+export async function getAllCommissionStyles(): Promise<CommissionStyle[]> {
+    return fetchAPI('commission-styles');
+}
+
 export async function getCommissionStylesByOptionId(optionId: string): Promise<CommissionStyle[]> {
-    const allStyles = await fetchAPI('commission-styles');
+    const allStyles = await getAllCommissionStyles();
     return allStyles.filter((style: CommissionStyle) => style.commissionOptionId === optionId);
 }
 
@@ -146,24 +137,16 @@ export async function getCommissionStyleById(id: string): Promise<CommissionStyl
     return fetchAPI(`commission-styles/${id}`);
 }
 
-export async function getAllCommissionStyles(): Promise<CommissionStyle[]> {
-    return fetchAPI('commission-styles');
-}
-
 export async function saveCommissionStyle(style: Omit<CommissionStyle, 'id'>, id?: string): Promise<string> {
-    if (id) {
-        await fetchAPI(`commission-styles/${id}`, { method: 'PUT', body: JSON.stringify(style) });
-        return id;
-    } else {
-        const newStyle = await fetchAPI('commission-styles', { method: 'POST', body: JSON.stringify(style) });
-        return newStyle.id;
-    }
+    const method = id ? 'PUT' : 'POST';
+    const path = id ? `commission-styles/${id}` : 'commission-styles';
+    const newStyle = await fetchAPI(path, { method, body: JSON.stringify(style) });
+    return newStyle.id;
 }
 
 export async function deleteCommissionStyle(id: string): Promise<void> {
     await fetchAPI(`commission-styles/${id}`, { method: 'DELETE' });
 }
-
 
 // Orders
 export async function getOrdersByUserId(userId: string): Promise<Order[]> {

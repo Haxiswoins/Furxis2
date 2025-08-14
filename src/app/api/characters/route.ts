@@ -1,34 +1,29 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import path from 'path';
 import { promises as fs } from 'fs';
 import type { Character } from '@/types';
 
-// Define the path to the JSON file
 const jsonDirectory = path.join(process.cwd(), 'data');
 const filePath = path.join(jsonDirectory, 'characters.json');
 
-// Helper function to read data
 async function readData(): Promise<Character[]> {
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(fileContents);
-  } catch (error) {
-    // If the file doesn't exist, return an empty array
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return [];
+    try {
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(fileContents);
+    } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            return [];
+        }
+        throw error;
     }
-    throw error;
-  }
 }
 
-// Helper function to write data
 async function writeData(data: Character[]): Promise<void> {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// GET all characters
+
 export async function GET() {
   try {
     const data = await readData();
@@ -39,7 +34,6 @@ export async function GET() {
   }
 }
 
-// POST a new character
 const postSchema = z.object({
   seriesId: z.string(),
   name: z.string(),

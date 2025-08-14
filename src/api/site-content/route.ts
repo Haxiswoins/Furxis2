@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -26,7 +25,7 @@ async function readData(): Promise<SiteContent> {
         homeBackgroundImageUrl: null,
         sunriseHour: 6,
         sunsetHour: 18,
-        contactInfo: '邮箱号（haxiswoins@qq.com），QQ号（805909541）'
+        contactInfo: '您好，若有任何需要，您可以通过邮箱haxiswoins@qq.com联系我们，我们将会在收到邮件后的第一时间回复您。'
       };
       await writeData(defaultContent);
       return defaultContent;

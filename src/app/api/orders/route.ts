@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -8,15 +7,15 @@ const jsonDirectory = path.join(process.cwd(), 'data');
 const filePath = path.join(jsonDirectory, 'orders.json');
 
 async function readData(): Promise<Order[]> {
-  try {
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(fileContents);
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return [];
+    try {
+        const fileContents = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(fileContents);
+    } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            return [];
+        }
+        throw error;
     }
-    throw error;
-  }
 }
 
 export async function GET(req: NextRequest) {
@@ -30,7 +29,6 @@ export async function GET(req: NextRequest) {
       orders = orders.filter(order => order.userId === userId);
     }
     
-    // Sort by date descending
     orders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
 
     return NextResponse.json(orders);
