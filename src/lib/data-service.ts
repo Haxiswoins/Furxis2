@@ -2,9 +2,12 @@
 import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 // Helper function for API requests
 async function fetchAPI(path: string, options: RequestInit = {}) {
-  const res = await fetch(`/api/${path}`, {
+  const url = `${BASE_URL}/api/${path}`;
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
