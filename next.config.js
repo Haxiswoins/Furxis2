@@ -47,16 +47,6 @@ const nextConfig = {
   images: {
     remotePatterns: remotePatterns,
   },
-  // Using rewrites is a more robust way to handle API calls in development
-  // and avoids issues with fetch on the server-side.
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: `http://localhost:3000/api/:path*`, // Proxy to API routes
-      },
-    ]
-  },
 };
 
 export default nextConfig;
