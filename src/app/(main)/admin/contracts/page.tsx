@@ -195,7 +195,7 @@ export default function ContractsPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormControl><Textarea {...field} rows={5} /></FormControl>
-                                        <FormDescription>模板中的 `{{productName}}` 部分将被自动替换为实际的产品名称，请务必保留。</FormDescription>
+                                        <FormDescription>{'模板中的 `{productName}` 部分将被自动替换为实际的产品名称，请务必保留。'}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
