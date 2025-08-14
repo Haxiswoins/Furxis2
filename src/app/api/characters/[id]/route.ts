@@ -76,7 +76,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(characters[index]);
   } catch (error) {
-    console.error(`[API/CHARACTERS/PUT] Failed to write data for ID ${params.id}:`, error);
+    console.error(`[API/CHARACTERS/PUT] Failed for ID ${params.id}:`, error);
     return NextResponse.json({ message: 'Internal Server Error: Failed to write data' }, { status: 500 });
   }
 }

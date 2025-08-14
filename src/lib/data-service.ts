@@ -1,55 +1,76 @@
+// This file provides functions to fetch data from the application's API routes.
+// It is intended to be used by both client and server components.
+
 import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
 
-// The BASE_URL is no longer needed here as we will use relative paths
-// that will be correctly handled by Next.js on both client and server.
-
+// A helper function to make API requests and handle errors.
 async function fetchAPI(path: string, options: RequestInit = {}) {
-  const url = `/api/${path}`; // Use relative path
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    cache: 'no-store',
-  });
+  // Use relative path for API calls, works for both client and server.
+  const url = `/api/${path}`;
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      // Cache-busting for GET requests to ensure fresh data
+      cache: 'no-store',
+    });
 
-  if (!res.ok) {
-    const errorBody = await res.text();
-    console.error(`API Error (${res.status}) on ${path}:`, errorBody);
-    throw new Error(`Failed to fetch ${path}`);
+    if (!res.ok) {
+      const errorBody = await res.text();
+      console.error(`API Error (${res.status}) on ${path}:`, errorBody);
+      throw new Error(`Failed to fetch ${path}`);
+    }
+    
+    // For DELETE requests, there might not be a body
+    if (res.status === 204 || res.headers.get('content-length') === '0') {
+      return null;
+    }
+    
+    return await res.json();
+  } catch (error) {
+     if (error instanceof TypeError && error.message.includes('fetch failed')) {
+        console.error(`Network error or failed to fetch API route: ${url}. Ensure the server is running and the route exists.`, error);
+     } else {
+        console.error(`An error occurred in fetchAPI for path ${path}:`, error);
+     }
+     throw error;
   }
-  if (res.status === 204 || res.headers.get('content-length') === '0') {
-    return null;
-  }
-  return res.json();
 }
 
 // Site Content
-export async function getSiteContent(): Promise<SiteContent | null> {
-    return fetchAPI('site-content');
+export async function getSiteContent(): Promise<SiteContent> {
+  return fetchAPI('site-content');
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {
-    await fetchAPI('site-content', { method: 'POST', body: JSON.stringify(content) });
+  await fetchAPI('site-content', {
+    method: 'POST',
+    body: JSON.stringify(content),
+  });
 }
 
 // Contracts
-export async function getContracts(): Promise<Contracts | null> {
-    return fetchAPI('contracts');
+export async function getContracts(): Promise<Contracts> {
+  return fetchAPI('contracts');
 }
 
 export async function saveContracts(contracts: Contracts): Promise<void> {
-    await fetchAPI('contracts', { method: 'POST', body: JSON.stringify(contracts) });
+  await fetchAPI('contracts', {
+    method: 'POST',
+    body: JSON.stringify(contracts),
+  });
 }
 
 // Character Series
 export async function getCharacterSeries(): Promise<CharacterSeries[]> {
-    return fetchAPI('character-series');
+  return fetchAPI('character-series');
 }
 
 export async function getCharacterSeriesById(id: string): Promise<CharacterSeries | null> {
-    return fetchAPI(`character-series/${id}`);
+  return fetchAPI(`character-series/${id}`);
 }
 
 export async function getCharacterSeriesByName(name: string): Promise<CharacterSeries | null> {
@@ -57,16 +78,24 @@ export async function getCharacterSeriesByName(name: string): Promise<CharacterS
     return allSeries.find(s => s.name === name) || null;
 }
 
-export async function saveCharacterSeries(seriesData: Omit<CharacterSeries, 'id'>, id?: string): Promise<string> {
-    const method = id ? 'PUT' : 'POST';
-    const path = id ? `character-series/${id}` : 'character-series';
-    const result = await fetchAPI(path, { method, body: JSON.stringify(seriesData) });
-    return result.id;
+export async function saveCharacterSeries(seriesData: Omit<CharacterSeries, 'id'>, id?: string): Promise<CharacterSeries> {
+  if (id) {
+    return fetchAPI(`character-series/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(seriesData),
+    });
+  } else {
+    return fetchAPI('character-series', {
+      method: 'POST',
+      body: JSON.stringify(seriesData),
+    });
+  }
 }
 
 export async function deleteCharacterSeries(id: string): Promise<void> {
-    await fetchAPI(`character-series/${id}`, { method: 'DELETE' });
+  await fetchAPI(`character-series/${id}`, { method: 'DELETE' });
 }
+
 
 // Characters (Adoption)
 export async function getCharacters(): Promise<Character[]> {
@@ -87,16 +116,24 @@ export async function getCharacterByName(name: string): Promise<Character | null
   return characters.find(char => char.name === name) || null;
 }
 
-export async function saveCharacter(character: Omit<Character, 'id'>, id?: string): Promise<string> {
-  const method = id ? 'PUT' : 'POST';
-  const path = id ? `characters/${id}` : 'characters';
-  const newChar = await fetchAPI(path, { method, body: JSON.stringify(character) });
-  return newChar.id;
+export async function saveCharacter(characterData: Omit<Character, 'id'>, id?: string): Promise<Character> {
+    if (id) {
+        return fetchAPI(`characters/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(characterData),
+        });
+    } else {
+        return fetchAPI('characters', {
+            method: 'POST',
+            body: JSON.stringify(characterData),
+        });
+    }
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
   await fetchAPI(`characters/${id}`, { method: 'DELETE' });
 }
+
 
 // Commission Options
 export async function getCommissionOptions(): Promise<CommissionOption[]> {
@@ -112,16 +149,24 @@ export async function getCommissionOptionByName(name: string): Promise<Commissio
   return options.find(opt => opt.name === name) || null;
 }
 
-export async function saveCommissionOption(commissionOption: Omit<CommissionOption, 'id'>, id?: string): Promise<string> {
-    const method = id ? 'PUT' : 'POST';
-    const path = id ? `commissions/${id}` : 'commissions';
-    const newOption = await fetchAPI(path, { method, body: JSON.stringify(commissionOption) });
-    return newOption.id;
+export async function saveCommissionOption(commissionOption: Omit<CommissionOption, 'id'>, id?: string): Promise<CommissionOption> {
+    if (id) {
+        return fetchAPI(`commissions/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(commissionOption),
+        });
+    } else {
+        return fetchAPI('commissions', {
+            method: 'POST',
+            body: JSON.stringify(commissionOption),
+        });
+    }
 }
 
 export async function deleteCommissionOption(id: string): Promise<void> {
     await fetchAPI(`commissions/${id}`, { method: 'DELETE' });
 }
+
 
 // Commission Styles
 export async function getAllCommissionStyles(): Promise<CommissionStyle[]> {
@@ -137,11 +182,18 @@ export async function getCommissionStyleById(id: string): Promise<CommissionStyl
     return fetchAPI(`commission-styles/${id}`);
 }
 
-export async function saveCommissionStyle(style: Omit<CommissionStyle, 'id'>, id?: string): Promise<string> {
-    const method = id ? 'PUT' : 'POST';
-    const path = id ? `commission-styles/${id}` : 'commission-styles';
-    const newStyle = await fetchAPI(path, { method, body: JSON.stringify(style) });
-    return newStyle.id;
+export async function saveCommissionStyle(style: Omit<CommissionStyle, 'id'>, id?: string): Promise<CommissionStyle> {
+    if (id) {
+        return fetchAPI(`commission-styles/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(style),
+        });
+    } else {
+        return fetchAPI('commission-styles', {
+            method: 'POST',
+            body: JSON.stringify(style),
+        });
+    }
 }
 
 export async function deleteCommissionStyle(id: string): Promise<void> {
@@ -162,28 +214,38 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 }
 
 export async function updateOrder(orderId: string, data: Partial<Order>): Promise<void> {
-    await fetchAPI(`orders/${orderId}`, { method: 'PATCH', body: JSON.stringify(data) });
+    await fetchAPI(`orders/${orderId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+    });
 }
 
 export async function deleteOrder(id: string): Promise<void> {
     await fetchAPI(`orders/${id}`, { method: 'DELETE' });
 }
 
+
 // Order Actions
-export async function createAdoptionApplication(userId: string, character: Character, applicationData: ApplicationData): Promise<string> {
-  const body = { userId, character, applicationData };
-  const newOrder = await fetchAPI('orders/create-adoption', { method: 'POST', body: JSON.stringify(body) });
-  return newOrder.id;
+export async function createAdoptionApplication(userId: string, character: Character, applicationData: ApplicationData): Promise<Order> {
+    return fetchAPI('orders/create-adoption', {
+        method: 'POST',
+        body: JSON.stringify({ userId, character, applicationData }),
+    });
 }
 
-export async function createCommissionApplication(userId: string, commissionStyle: CommissionStyle, applicationData: ApplicationData): Promise<string> {
-    const body = { userId, commissionStyle, applicationData };
-    const newOrder = await fetchAPI('orders/create-commission', { method: 'POST', body: JSON.stringify(body) });
-    return newOrder.id;
+export async function createCommissionApplication(userId: string, commissionStyle: CommissionStyle, applicationData: ApplicationData): Promise<Order> {
+    return fetchAPI('orders/create-commission', {
+        method: 'POST',
+        body: JSON.stringify({ userId, commissionStyle, applicationData }),
+    });
 }
+
 
 export async function cancelOrder(orderId: string, reason: string): Promise<void> {
-  await fetchAPI(`orders/${orderId}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) });
+  await fetchAPI(`orders/${orderId}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+  });
 }
 
 export async function reinstateOrder(orderId: string): Promise<void> {
