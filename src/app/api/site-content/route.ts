@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSiteContent, saveSiteContent } from '@/lib/data-service';
+import { getSiteContentHandler, saveSiteContentHandler } from '@/lib/data-handler';
+import { SiteContent } from '@/types';
 
 export async function GET() {
   try {
-    const data = await getSiteContent();
+    const data = await getSiteContentHandler();
     return NextResponse.json(data);
   } catch (error) {
     console.error('[API/SITE-CONTENT/GET] Failed to read site content:', error);
@@ -13,8 +14,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    await saveSiteContent(body);
+    const body: SiteContent = await req.json();
+    await saveSiteContentHandler(body);
     return NextResponse.json({ message: 'Content updated successfully' });
   } catch (error) {
     console.error('[API/SITE-CONTENT/POST] Failed to write site content:', error);

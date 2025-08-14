@@ -1,28 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
-import { promises as fs } from 'fs';
-import type { Order } from '@/types';
-
-const jsonDirectory = path.join(process.cwd(), 'data');
-const filePath = path.join(jsonDirectory, 'orders.json');
-
-async function readData(): Promise<Order[]> {
-    try {
-        const fileContents = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(fileContents);
-    } catch (error) {
-        console.error("Error reading orders.json", error);
-        return [];
-    }
-}
-
+import { getOrdersHandler } from '@/lib/data-handler';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
     
-    let orders = await readData();
+    let orders = await getOrdersHandler();
 
     if (userId) {
       orders = orders.filter(order => order.userId === userId);

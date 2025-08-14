@@ -1,32 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import path from 'path';
-import { promises as fs } from 'fs';
-import type { CommissionOption } from '@/types';
-
-const jsonDirectory = path.join(process.cwd(), 'data');
-const filePath = path.join(jsonDirectory, 'commissionOptions.json');
-
-async function readData(): Promise<CommissionOption[]> {
-    try {
-        const fileContents = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(fileContents);
-    } catch (error) {
-        console.error("Error reading commissionOptions.json", error);
-        return [];
-    }
-}
-
-async function writeData(data: CommissionOption[]): Promise<void> {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-}
-
+import { getCommissionOptionByIdHandler, saveCommissionOptionHandler, deleteCommissionOptionHandler } from '@/lib/data-handler';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const commissions = await readData();
-    const commission = commissions.find(c => c.id === params.id);
-
+    const commission = await getCommissionOptionByIdHandler(params.id);
     if (!commission) {
       return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
     }
@@ -55,37 +33,26 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
     
-    const commissions = await readData();
-    const index = commissions.findIndex(c => c.id === params.id);
-
-    if (index === -1) {
-        return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
-    }
-
-    const updatedOption = { ...commissions[index], ...validation.data };
-    commissions[index] = updatedOption;
-    await writeData(commissions);
-
+    const updatedOption = await saveCommissionOptionHandler(validation.data, params.id);
     return NextResponse.json(updatedOption);
   } catch (error) {
     console.error(`[API/COMMISSIONS/PUT] Failed to write data for ID ${params.id}:`, error);
+    if (error instanceof Error && error.message.includes('not found')) {
+      return NextResponse.json({ message: error.message }, { status: 404 });
+    }
     return NextResponse.json({ message: 'Internal Server Error: Failed to write data' }, { status: 500 });
   }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const commissions = await readData();
-    const filtered = commissions.filter(c => c.id !== params.id);
-
-    if (commissions.length === filtered.length) {
-        return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
-    }
-
-    await writeData(filtered);
+    await deleteCommissionOptionHandler(params.id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(`[API/COMMISSIONS/DELETE] Failed to delete data for ID ${params.id}:`, error);
+    if (error instanceof Error && error.message.includes('not found')) {
+      return NextResponse.json({ message: error.message }, { status: 404 });
+    }
     return NextResponse.json({ message: 'Internal Server Error: Failed to write data' }, { status: 500 });
   }
 }
