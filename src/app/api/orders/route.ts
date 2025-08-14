@@ -11,12 +11,11 @@ async function readData(): Promise<Order[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading orders.json", error);
+        return [];
     }
 }
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -28,8 +27,6 @@ export async function GET(req: NextRequest) {
     if (userId) {
       orders = orders.filter(order => order.userId === userId);
     }
-    
-    orders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
 
     return NextResponse.json(orders);
   } catch (error) {

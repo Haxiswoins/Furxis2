@@ -12,10 +12,8 @@ async function readData(): Promise<CommissionOption[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading commissionOptions.json", error);
+        return [];
     }
 }
 
@@ -53,13 +51,10 @@ export async function POST(req: NextRequest) {
     }
 
     const commissions = await readData();
-    const newCommission: CommissionOption = {
-      id: `comm_${Date.now()}`,
-      ...validation.data,
-    };
+    const newCommission: CommissionOption = { id: `comm_${Date.now()}`, ...validation.data };
     commissions.push(newCommission);
     await writeData(commissions);
-    
+
     return NextResponse.json(newCommission, { status: 201 });
   } catch (error) {
     console.error('[API/COMMISSIONS/POST] Failed to write data:', error);

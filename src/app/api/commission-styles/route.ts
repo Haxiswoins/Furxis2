@@ -12,10 +12,8 @@ async function readData(): Promise<CommissionStyle[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading commissionStyles.json", error);
+        return [];
     }
 }
 
@@ -52,13 +50,10 @@ export async function POST(req: NextRequest) {
     }
 
     const styles = await readData();
-    const newStyle: CommissionStyle = {
-      id: `style_${Date.now()}`,
-      ...validation.data,
-    };
+    const newStyle: CommissionStyle = { id: `style_${Date.now()}`, ...validation.data };
     styles.push(newStyle);
     await writeData(styles);
-    
+
     return NextResponse.json(newStyle, { status: 201 });
   } catch (error) {
     console.error('[API/COMMISSION-STYLES/POST] Failed to write data:', error);

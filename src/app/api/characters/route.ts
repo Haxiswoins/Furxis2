@@ -12,10 +12,8 @@ async function readData(): Promise<Character[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading characters.json", error);
+        return [];
     }
 }
 
@@ -44,9 +42,9 @@ const postSchema = z.object({
   applicants: z.number(),
   imageUrl: z.string(),
   imageUrl1: z.string(),
-  imageUrl2: z.string().url().optional(),
-  imageUrl3: z.string().url().optional(),
-  imageUrl4: z.string().url().optional(),
+  imageUrl2: z.string().optional().nullable(),
+  imageUrl3: z.string().optional().nullable(),
+  imageUrl4: z.string().optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -58,10 +56,7 @@ export async function POST(req: NextRequest) {
     }
 
     const characters = await readData();
-    const newCharacter: Character = {
-      id: `char_${Date.now()}`,
-      ...validation.data,
-    };
+    const newCharacter: Character = { id: `char_${Date.now()}`, ...validation.data };
     characters.push(newCharacter);
     await writeData(characters);
     

@@ -12,17 +12,14 @@ async function readData(): Promise<Character[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading characters.json", error);
+        return [];
     }
 }
 
 async function writeData(data: Character[]): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
-
 
 const putSchema = z.object({
   seriesId: z.string(),
@@ -34,9 +31,9 @@ const putSchema = z.object({
   applicants: z.number(),
   imageUrl: z.string(),
   imageUrl1: z.string(),
-  imageUrl2: z.string().optional(),
-  imageUrl3: z.string().optional(),
-  imageUrl4: z.string().optional(),
+  imageUrl2: z.string().optional().nullable(),
+  imageUrl3: z.string().optional().nullable(),
+  imageUrl4: z.string().optional().nullable(),
 });
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -62,19 +59,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
 
-    let characters = await readData();
+    const characters = await readData();
     const index = characters.findIndex(c => c.id === params.id);
-
     if (index === -1) {
-      return NextResponse.json({ message: 'Character not found' }, { status: 404 });
+        return NextResponse.json({ message: 'Character not found' }, { status: 404 });
     }
-
+    
     const updatedCharacter = { ...characters[index], ...validation.data };
     characters[index] = updatedCharacter;
-    
     await writeData(characters);
 
-    return NextResponse.json(characters[index]);
+    return NextResponse.json(updatedCharacter);
   } catch (error) {
     console.error(`[API/CHARACTERS/PUT] Failed for ID ${params.id}:`, error);
     return NextResponse.json({ message: 'Internal Server Error: Failed to write data' }, { status: 500 });
@@ -83,16 +78,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let characters = await readData();
-    const originalLength = characters.length;
-    const filteredCharacters = characters.filter(c => c.id !== params.id);
+    const characters = await readData();
+    const filtered = characters.filter(c => c.id !== params.id);
 
-    if (originalLength === filteredCharacters.length) {
+    if (characters.length === filtered.length) {
       return NextResponse.json({ message: 'Character not found' }, { status: 404 });
     }
 
-    await writeData(filteredCharacters);
-
+    await writeData(filtered);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(`[API/CHARACTERS/DELETE] Failed to delete data for ID ${params.id}:`, error);

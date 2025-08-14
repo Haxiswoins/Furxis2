@@ -12,10 +12,8 @@ async function readData(): Promise<CommissionOption[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading commissionOptions.json", error);
+        return [];
     }
 }
 
@@ -56,18 +54,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!validation.success) {
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
-
-    let commissions = await readData();
+    
+    const commissions = await readData();
     const index = commissions.findIndex(c => c.id === params.id);
 
     if (index === -1) {
-      return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
+        return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
     }
 
-    commissions[index] = { ...commissions[index], ...validation.data };
+    const updatedOption = { ...commissions[index], ...validation.data };
+    commissions[index] = updatedOption;
     await writeData(commissions);
 
-    return NextResponse.json(commissions[index]);
+    return NextResponse.json(updatedOption);
   } catch (error) {
     console.error(`[API/COMMISSIONS/PUT] Failed to write data for ID ${params.id}:`, error);
     return NextResponse.json({ message: 'Internal Server Error: Failed to write data' }, { status: 500 });
@@ -76,16 +75,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let commissions = await readData();
-    const originalLength = commissions.length;
-    const filteredCommissions = commissions.filter(c => c.id !== params.id);
+    const commissions = await readData();
+    const filtered = commissions.filter(c => c.id !== params.id);
 
-    if (originalLength === filteredCommissions.length) {
-      return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
+    if (commissions.length === filtered.length) {
+        return NextResponse.json({ message: 'Commission option not found' }, { status: 404 });
     }
 
-    await writeData(filteredCommissions);
-
+    await writeData(filtered);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(`[API/COMMISSIONS/DELETE] Failed to delete data for ID ${params.id}:`, error);

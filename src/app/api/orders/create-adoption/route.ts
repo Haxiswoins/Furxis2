@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
-import type { Character, ApplicationData, Order, SiteContent } from '@/types';
+import type { Order, Character, ApplicationData, SiteContent } from '@/types';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
 const jsonDirectory = path.join(process.cwd(), 'data');
 const ordersFilePath = path.join(jsonDirectory, 'orders.json');
 const charactersFilePath = path.join(jsonDirectory, 'characters.json');
 const siteContentFilePath = path.join(jsonDirectory, 'siteContent.json');
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 async function readOrders(): Promise<Order[]> {
     const fileContents = await fs.readFile(ordersFilePath, 'utf8');
@@ -27,10 +28,11 @@ async function writeCharacters(data: Character[]): Promise<void> {
     await fs.writeFile(charactersFilePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
-async function readSiteContent(): Promise<SiteContent> {
+async function getSiteContent(): Promise<SiteContent> {
     const fileContents = await fs.readFile(siteContentFilePath, 'utf8');
     return JSON.parse(fileContents);
 }
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +41,9 @@ export async function POST(req: NextRequest) {
     if (!userId || !character || !applicationData) {
         return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
+
+    const orders = await readOrders();
+    const characters = await readCharacters();
 
     const orderNumber = `S${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${Math.floor(100 + Math.random() * 900)}`;
 
@@ -55,21 +60,17 @@ export async function POST(req: NextRequest) {
         shippingAddress: `${applicationData.province} ${applicationData.city} ${applicationData.district} ${applicationData.addressDetail}`,
         applicationData,
     };
-
-    const orders = await readOrders();
+    
     orders.push(newOrder);
-    await writeOrders(orders);
 
-    const characters = await readCharacters();
     const charIndex = characters.findIndex(c => c.id === character.id);
     if (charIndex > -1) {
         characters[charIndex].applicants += 1;
-        await writeCharacters(characters);
     }
 
+    // Email notification logic
     try {
-        const siteContent = await readSiteContent();
-        const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const siteContent = await getSiteContent();
         if (siteContent.adminEmail) {
             await sendEmail({
                 to: siteContent.adminEmail,
@@ -81,6 +82,11 @@ export async function POST(req: NextRequest) {
     } catch (emailError) {
         console.error("Failed to send new adoption notification email:", emailError);
     }
+
+    await Promise.all([
+        writeOrders(orders),
+        writeCharacters(characters)
+    ]);
     
     return NextResponse.json(newOrder, { status: 201 });
   } catch (error) {

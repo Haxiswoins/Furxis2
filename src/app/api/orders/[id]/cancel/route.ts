@@ -4,18 +4,23 @@ import { promises as fs } from 'fs';
 import type { Order, SiteContent } from '@/types';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
-const ordersFilePath = path.join(process.cwd(), 'data', 'orders.json');
-const siteContentFilePath = path.join(process.cwd(), 'data', 'siteContent.json');
+const jsonDirectory = path.join(process.cwd(), 'data');
+const ordersFilePath = path.join(jsonDirectory, 'orders.json');
+const siteContentFilePath = path.join(jsonDirectory, 'siteContent.json');
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-
-async function readData<T>(filePath: string): Promise<T> {
-    const fileContents = await fs.readFile(filePath, 'utf8');
+async function readOrders(): Promise<Order[]> {
+    const fileContents = await fs.readFile(ordersFilePath, 'utf8');
     return JSON.parse(fileContents);
 }
 
-async function writeData(filePath: string, data: any): Promise<void> {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+async function writeOrders(data: Order[]): Promise<void> {
+    await fs.writeFile(ordersFilePath, JSON.stringify(data, null, 2), 'utf8');
+}
+
+async function getSiteContent(): Promise<SiteContent> {
+    const fileContents = await fs.readFile(siteContentFilePath, 'utf8');
+    return JSON.parse(fileContents);
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -24,27 +29,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         if (!reason) {
             return NextResponse.json({ message: 'Cancellation reason is required' }, { status: 400 });
         }
-
-        const orders = await readData<Order[]>(ordersFilePath);
+        
+        const orders = await readOrders();
         const index = orders.findIndex(o => o.id === params.id);
-
         if (index === -1) {
             return NextResponse.json({ message: 'Order not found' }, { status: 404 });
         }
-        
+
         const order = orders[index];
         order.status = '取消中';
         order.cancellationReason = reason;
 
-        await writeData(ordersFilePath, orders);
-
-        // Send email notification
+        // Email notification
         try {
-            const siteContent = await readData<SiteContent>(siteContentFilePath);
+            const siteContent = await getSiteContent();
             if (siteContent.adminEmail) {
                 await sendEmail({
                     to: siteContent.adminEmail,
-                    from: 'notification@suitopia.club', // Must be a verified domain on your email provider
+                    from: 'notification@suitopia.club', 
                     subject: `[取消申请] 用户申请取消订单 #${order.orderNumber}`,
                     html: `
                         <h1>新的取消申请</h1>
@@ -61,13 +63,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
             }
         } catch (emailError) {
             console.error("Failed to send cancellation notification email:", emailError);
-            // Do not block the main flow if email fails
         }
         
-        return NextResponse.json(orders[index]);
+        await writeOrders(orders);
+        return NextResponse.json(order);
 
     } catch (error) {
-        console.error("Error updating order:", error);
+        console.error("Error in API route /api/orders/[id]/cancel:", error);
         return NextResponse.json({ message: 'Error updating order' }, { status: 500 });
     }
 }

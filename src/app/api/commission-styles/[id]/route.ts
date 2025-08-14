@@ -12,10 +12,8 @@ async function readData(): Promise<CommissionStyle[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading commissionStyles.json", error);
+        return [];
     }
 }
 
@@ -56,17 +54,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
 
-    let styles = await readData();
+    const styles = await readData();
     const index = styles.findIndex(s => s.id === params.id);
-
-    if (index === -1) {
-      return NextResponse.json({ message: 'Commission style not found' }, { status: 404 });
+    if(index === -1) {
+        return NextResponse.json({ message: 'Commission style not found' }, { status: 404 });
     }
 
-    styles[index] = { ...styles[index], ...validation.data };
+    const updatedStyle = { ...styles[index], ...validation.data };
+    styles[index] = updatedStyle;
     await writeData(styles);
 
-    return NextResponse.json(styles[index]);
+    return NextResponse.json(updatedStyle);
   } catch (error) {
     console.error(`[API/COMMISSION-STYLES/PUT] Failed for ID ${params.id}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -75,16 +73,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let styles = await readData();
-    const originalLength = styles.length;
-    const filteredStyles = styles.filter(s => s.id !== params.id);
-
-    if (originalLength === filteredStyles.length) {
+    const styles = await readData();
+    const filtered = styles.filter(s => s.id !== params.id);
+    
+    if (styles.length === filtered.length) {
       return NextResponse.json({ message: 'Commission style not found' }, { status: 404 });
     }
 
-    await writeData(filteredStyles);
-
+    await writeData(filtered);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error(`[API/COMMISSION-STYLES/DELETE] Failed for ID ${params.id}:`, error);

@@ -12,16 +12,15 @@ async function readData(): Promise<CharacterSeries[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading characterSeries.json", error);
+        return [];
     }
 }
 
 async function writeData(data: CharacterSeries[]): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
+
 
 export async function GET() {
   try {
@@ -47,13 +46,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
 
-    const series = await readData();
-    const newSeries: CharacterSeries = {
-      id: `series_${Date.now()}`,
-      ...validation.data,
+    const allSeries = await readData();
+    const newSeries: CharacterSeries = { 
+        id: `series_${Date.now()}`, 
+        ...validation.data 
     };
-    series.push(newSeries);
-    await writeData(series);
+    allSeries.push(newSeries);
+    await writeData(allSeries);
     
     return NextResponse.json(newSeries, { status: 201 });
   } catch (error) {

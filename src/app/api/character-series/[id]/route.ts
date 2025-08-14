@@ -12,10 +12,8 @@ async function readData(): Promise<CharacterSeries[]> {
         const fileContents = await fs.readFile(filePath, 'utf8');
         return JSON.parse(fileContents);
     } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            return [];
-        }
-        throw error;
+        console.error("Error reading characterSeries.json", error);
+        return [];
     }
 }
 
@@ -23,10 +21,11 @@ async function writeData(data: CharacterSeries[]): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const series = await readData();
-    const item = series.find(s => s.id === params.id);
+    const allSeries = await readData();
+    const item = allSeries.find(s => s.id === params.id);
 
     if (!item) {
       return NextResponse.json({ message: 'Character series not found' }, { status: 404 });
@@ -51,18 +50,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!validation.success) {
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
-
-    let series = await readData();
-    const index = series.findIndex(s => s.id === params.id);
-
+    
+    const allSeries = await readData();
+    const index = allSeries.findIndex(s => s.id === params.id);
     if (index === -1) {
-      return NextResponse.json({ message: 'Character series not found' }, { status: 404 });
+        return NextResponse.json({ message: 'Character series not found' }, { status: 404 });
     }
 
-    series[index] = { ...series[index], ...validation.data };
-    await writeData(series);
-
-    return NextResponse.json(series[index]);
+    const updatedSeries = { ...allSeries[index], ...validation.data };
+    allSeries[index] = updatedSeries;
+    await writeData(allSeries);
+    
+    return NextResponse.json(updatedSeries);
   } catch (error) {
     console.error(`[API/CHARACTER-SERIES/PUT] Failed for ID ${params.id}:`, error);
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
@@ -71,12 +70,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let series = await readData();
-    const originalLength = series.length;
-    const filteredSeries = series.filter(s => s.id !== params.id);
+    const allSeries = await readData();
+    const filteredSeries = allSeries.filter(s => s.id !== params.id);
 
-    if (originalLength === filteredSeries.length) {
-      return NextResponse.json({ message: 'Character series not found' }, { status: 404 });
+    if (allSeries.length === filteredSeries.length) {
+        return NextResponse.json({ message: 'Character series not found' }, { status: 404 });
     }
 
     await writeData(filteredSeries);

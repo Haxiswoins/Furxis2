@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
-import type { CommissionStyle, ApplicationData, Order, SiteContent } from '@/types';
+import type { Order, CommissionStyle, ApplicationData, SiteContent } from '@/types';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
 const jsonDirectory = path.join(process.cwd(), 'data');
 const ordersFilePath = path.join(jsonDirectory, 'orders.json');
 const siteContentFilePath = path.join(jsonDirectory, 'siteContent.json');
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
 
 async function readOrders(): Promise<Order[]> {
     const fileContents = await fs.readFile(ordersFilePath, 'utf8');
@@ -17,7 +19,7 @@ async function writeOrders(data: Order[]): Promise<void> {
     await fs.writeFile(ordersFilePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
-async function readSiteContent(): Promise<SiteContent> {
+async function getSiteContent(): Promise<SiteContent> {
     const fileContents = await fs.readFile(siteContentFilePath, 'utf8');
     return JSON.parse(fileContents);
 }
@@ -30,7 +32,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
+    const orders = await readOrders();
     const orderNumber = `C${new Date().toISOString().slice(0, 10).replace(/-/g, '')}${Math.floor(100 + Math.random() * 900)}`;
+
     const newOrder: Order = {
         id: `order_${Date.now()}`,
         userId,
@@ -46,13 +50,10 @@ export async function POST(req: NextRequest) {
         referenceImageUrl: applicationData.referenceImageUrl || null,
     };
 
-    const orders = await readOrders();
     orders.push(newOrder);
-    await writeOrders(orders);
 
     try {
-        const siteContent = await readSiteContent();
-        const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const siteContent = await getSiteContent();
         if (siteContent.adminEmail) {
             await sendEmail({
                 to: siteContent.adminEmail,
@@ -64,8 +65,10 @@ export async function POST(req: NextRequest) {
     } catch (emailError) {
         console.error("Failed to send new commission notification email:", emailError);
     }
-
+    
+    await writeOrders(orders);
     return NextResponse.json(newOrder, { status: 201 });
+
   } catch (error) {
      console.error(error);
     return NextResponse.json({ message: 'Error creating commission application' }, { status: 500 });
