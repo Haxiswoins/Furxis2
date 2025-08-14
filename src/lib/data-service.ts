@@ -4,7 +4,7 @@ import { sendEmail } from '@/ai/flows/send-email-flow';
 
 // Helper function for API requests
 async function fetchAPI(path: string, options: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`/api/${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -26,30 +26,30 @@ async function fetchAPI(path: string, options: RequestInit = {}) {
 
 // Site Content
 export async function getSiteContent(): Promise<SiteContent | null> {
-    return fetchAPI('/site-content');
+    return fetchAPI('site-content');
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {
-    await fetchAPI('/site-content', { method: 'POST', body: JSON.stringify(content) });
+    await fetchAPI('site-content', { method: 'POST', body: JSON.stringify(content) });
 }
 
 // Contracts
 export async function getContracts(): Promise<Contracts | null> {
-    return fetchAPI('/contracts');
+    return fetchAPI('contracts');
 }
 
 export async function saveContracts(contracts: Contracts): Promise<void> {
-    await fetchAPI('/contracts', { method: 'POST', body: JSON.stringify(contracts) });
+    await fetchAPI('contracts', { method: 'POST', body: JSON.stringify(contracts) });
 }
 
 
 // Character Series
 export async function getCharacterSeries(): Promise<CharacterSeries[]> {
-    return fetchAPI('/character-series');
+    return fetchAPI('character-series');
 }
 
 export async function getCharacterSeriesById(id: string): Promise<CharacterSeries | null> {
-    return fetchAPI(`/character-series/${id}`);
+    return fetchAPI(`character-series/${id}`);
 }
 
 export async function getCharacterSeriesByName(name: string): Promise<CharacterSeries | null> {
@@ -59,21 +59,21 @@ export async function getCharacterSeriesByName(name: string): Promise<CharacterS
 
 export async function saveCharacterSeries(series: Omit<CharacterSeries, 'id'>, id?: string): Promise<string> {
     if (id) {
-        await fetchAPI(`/character-series/${id}`, { method: 'PUT', body: JSON.stringify(series) });
+        await fetchAPI(`character-series/${id}`, { method: 'PUT', body: JSON.stringify(series) });
         return id;
     } else {
-        const newSeries = await fetchAPI('/character-series', { method: 'POST', body: JSON.stringify(series) });
+        const newSeries = await fetchAPI('character-series', { method: 'POST', body: JSON.stringify(series) });
         return newSeries.id;
     }
 }
 
 export async function deleteCharacterSeries(id: string): Promise<void> {
-    await fetchAPI(`/character-series/${id}`, { method: 'DELETE' });
+    await fetchAPI(`character-series/${id}`, { method: 'DELETE' });
 }
 
 // Characters (Adoption)
 export async function getCharacters(): Promise<Character[]> {
-  return fetchAPI('/characters');
+  return fetchAPI('characters');
 }
 
 export async function getCharactersBySeriesId(seriesId: string): Promise<Character[]> {
@@ -82,7 +82,7 @@ export async function getCharactersBySeriesId(seriesId: string): Promise<Charact
 }
 
 export async function getCharacterById(id: string): Promise<Character | null> {
-  return fetchAPI(`/characters/${id}`);
+  return fetchAPI(`characters/${id}`);
 }
 
 export async function getCharacterByName(name: string): Promise<Character | null> {
@@ -92,26 +92,26 @@ export async function getCharacterByName(name: string): Promise<Character | null
 
 export async function saveCharacter(character: Omit<Character, 'id'>, id?: string): Promise<string> {
   if (id) {
-    await fetchAPI(`/characters/${id}`, { method: 'PUT', body: JSON.stringify(character) });
+    await fetchAPI(`characters/${id}`, { method: 'PUT', body: JSON.stringify(character) });
     return id;
   } else {
-    const newChar = await fetchAPI('/characters', { method: 'POST', body: JSON.stringify(character) });
+    const newChar = await fetchAPI('characters', { method: 'POST', body: JSON.stringify(character) });
     return newChar.id;
   }
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
-  await fetchAPI(`/characters/${id}`, { method: 'DELETE' });
+  await fetchAPI(`characters/${id}`, { method: 'DELETE' });
 }
 
 
 // Commission Options
 export async function getCommissionOptions(): Promise<CommissionOption[]> {
-  return fetchAPI('/commissions');
+  return fetchAPI('commissions');
 }
 
 export async function getCommissionOptionById(id: string): Promise<CommissionOption | null> {
-    return fetchAPI(`/commissions/${id}`);
+    return fetchAPI(`commissions/${id}`);
 }
 
 export async function getCommissionOptionByName(name: string): Promise<CommissionOption | null> {
@@ -121,89 +121,89 @@ export async function getCommissionOptionByName(name: string): Promise<Commissio
 
 export async function saveCommissionOption(commissionOption: Omit<CommissionOption, 'id'>, id?: string): Promise<string> {
     if (id) {
-        await fetchAPI(`/commissions/${id}`, { method: 'PUT', body: JSON.stringify(commissionOption) });
+        await fetchAPI(`commissions/${id}`, { method: 'PUT', body: JSON.stringify(commissionOption) });
         return id;
     } else {
-        const newOption = await fetchAPI('/commissions', { method: 'POST', body: JSON.stringify(commissionOption) });
+        const newOption = await fetchAPI('commissions', { method: 'POST', body: JSON.stringify(commissionOption) });
         return newOption.id;
     }
 }
 
 export async function deleteCommissionOption(id: string): Promise<void> {
-    await fetchAPI(`/commissions/${id}`, { method: 'DELETE' });
+    await fetchAPI(`commissions/${id}`, { method: 'DELETE' });
 }
 
 // Commission Styles
 export async function getCommissionStylesByOptionId(optionId: string): Promise<CommissionStyle[]> {
-    const allStyles = await fetchAPI('/commission-styles');
+    const allStyles = await fetchAPI('commission-styles');
     return allStyles.filter((style: CommissionStyle) => style.commissionOptionId === optionId);
 }
 
 export async function getCommissionStyleById(id: string): Promise<CommissionStyle | null> {
-    return fetchAPI(`/commission-styles/${id}`);
+    return fetchAPI(`commission-styles/${id}`);
 }
 
 export async function getAllCommissionStyles(): Promise<CommissionStyle[]> {
-    return fetchAPI('/commission-styles');
+    return fetchAPI('commission-styles');
 }
 
 export async function saveCommissionStyle(style: Omit<CommissionStyle, 'id'>, id?: string): Promise<string> {
     if (id) {
-        await fetchAPI(`/commission-styles/${id}`, { method: 'PUT', body: JSON.stringify(style) });
+        await fetchAPI(`commission-styles/${id}`, { method: 'PUT', body: JSON.stringify(style) });
         return id;
     } else {
-        const newStyle = await fetchAPI('/commission-styles', { method: 'POST', body: JSON.stringify(style) });
+        const newStyle = await fetchAPI('commission-styles', { method: 'POST', body: JSON.stringify(style) });
         return newStyle.id;
     }
 }
 
 export async function deleteCommissionStyle(id: string): Promise<void> {
-    await fetchAPI(`/commission-styles/${id}`, { method: 'DELETE' });
+    await fetchAPI(`commission-styles/${id}`, { method: 'DELETE' });
 }
 
 
 // Orders
 export async function getOrdersByUserId(userId: string): Promise<Order[]> {
-  return fetchAPI(`/orders?userId=${userId}`);
+  return fetchAPI(`orders?userId=${userId}`);
 }
 
 export async function getAllOrders(): Promise<Order[]> {
-    return fetchAPI('/orders');
+    return fetchAPI('orders');
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  return fetchAPI(`/orders/${orderId}`);
+  return fetchAPI(`orders/${orderId}`);
 }
 
 export async function updateOrder(orderId: string, data: Partial<Order>): Promise<void> {
-    await fetchAPI(`/orders/${orderId}`, { method: 'PATCH', body: JSON.stringify(data) });
+    await fetchAPI(`orders/${orderId}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
 export async function deleteOrder(id: string): Promise<void> {
-    await fetchAPI(`/orders/${id}`, { method: 'DELETE' });
+    await fetchAPI(`orders/${id}`, { method: 'DELETE' });
 }
 
 // Order Actions
 export async function createAdoptionApplication(userId: string, character: Character, applicationData: ApplicationData): Promise<string> {
   const body = { userId, character, applicationData };
-  const newOrder = await fetchAPI('/orders/create-adoption', { method: 'POST', body: JSON.stringify(body) });
+  const newOrder = await fetchAPI('orders/create-adoption', { method: 'POST', body: JSON.stringify(body) });
   return newOrder.id;
 }
 
 export async function createCommissionApplication(userId: string, commissionStyle: CommissionStyle, applicationData: ApplicationData): Promise<string> {
     const body = { userId, commissionStyle, applicationData };
-    const newOrder = await fetchAPI('/orders/create-commission', { method: 'POST', body: JSON.stringify(body) });
+    const newOrder = await fetchAPI('orders/create-commission', { method: 'POST', body: JSON.stringify(body) });
     return newOrder.id;
 }
 
 export async function cancelOrder(orderId: string, reason: string): Promise<void> {
-  await fetchAPI(`/orders/${orderId}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) });
+  await fetchAPI(`orders/${orderId}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) });
 }
 
 export async function reinstateOrder(orderId: string): Promise<void> {
-    await fetchAPI(`/orders/${orderId}/reinstate`, { method: 'POST' });
+    await fetchAPI(`orders/${orderId}/reinstate`, { method: 'POST' });
 }
 
 export async function confirmCommissionOrder(orderId: string): Promise<Order> {
-    return fetchAPI(`/orders/${orderId}/confirm`, { method: 'POST' });
+    return fetchAPI(`orders/${orderId}/confirm`, { method: 'POST' });
 }
