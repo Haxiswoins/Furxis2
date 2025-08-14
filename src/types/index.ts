@@ -49,7 +49,7 @@ export type Order = {
   productName: string;
   orderNumber: string;
   orderType: '领养订单' | '委托订单';
-  status: '申请中' | '待确认' | '排队中' | '制作中' | '取消中' | '已发货' | '已完成' | '已取消';
+  status: '申请中' | '待确认' | '已确认' | '排队中' | '制作中' | '取消中' | '已发货' | '已完成' | '已取消';
   imageUrl: string;
   orderDate: string; // ISO string
   total: string;
@@ -89,4 +89,10 @@ export type SiteContent = {
   sunriseHour?: number;
   sunsetHour?: number;
   contactInfo?: string;
+};
+
+export type Contracts = {
+  commissionContract: string;
+  adoptionContract: string;
+  commissionConfirmationEmail: string;
 };

@@ -29,7 +29,7 @@ import { Textarea } from './ui/textarea';
 
 const formSchema = z.object({
   total: z.string().min(1, { message: '总价不能为空。' }),
-  status: z.enum(['申请中', '待确认', '排队中', '制作中', '取消中', '已发货', '已完成', '已取消']),
+  status: z.enum(['申请中', '待确认', '已确认', '排队中', '制作中', '取消中', '已发货', '已完成', '已取消']),
   shippingTrackingId: z.string().optional(),
   // Application Data
   userName: z.string().min(1, '姓名不能为空'),
@@ -194,6 +194,7 @@ export function AdminOrderForm({ order }: AdminOrderFormProps) {
                                     <SelectContent>
                                         <SelectItem value="申请中">申请中</SelectItem>
                                         <SelectItem value="待确认">待确认</SelectItem>
+                                        <SelectItem value="已确认">已确认</SelectItem>
                                         <SelectItem value="排队中">排队中</SelectItem>
                                         <SelectItem value="制作中">制作中</SelectItem>
                                         <SelectItem value="取消中">取消中</SelectItem>

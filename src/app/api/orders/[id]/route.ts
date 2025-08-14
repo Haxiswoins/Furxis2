@@ -3,30 +3,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import path from 'path';
 import { promises as fs } from 'fs';
-import type { Order, ApplicationData } from '@/types';
+import type { Order, ApplicationData, SiteContent, Contracts, CommissionStyle, CommissionOption } from '@/types';
+import { sendEmail } from '@/ai/flows/send-email-flow';
+
 
 const jsonDirectory = path.join(process.cwd(), 'data');
-const filePath = path.join(jsonDirectory, 'orders.json');
+const ordersFilePath = path.join(jsonDirectory, 'orders.json');
+const siteContentFilePath = path.join(jsonDirectory, 'siteContent.json');
+const contractsFilePath = path.join(jsonDirectory, 'contracts.json');
+const commissionStylesFilePath = path.join(jsonDirectory, 'commissionStyles.json');
+const commissionOptionsFilePath = path.join(jsonDirectory, 'commissionOptions.json');
 
-async function readData(): Promise<Order[]> {
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+async function readData<T>(filePath: string): Promise<T> {
   try {
     const fileContents = await fs.readFile(filePath, 'utf8');
     return JSON.parse(fileContents);
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-      return [];
+      if (filePath.endsWith('s.json')) return [] as T;
+      return {} as T;
     }
     throw error;
   }
 }
 
 async function writeData(data: Order[]): Promise<void> {
-  await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+  await fs.writeFile(ordersFilePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const orders = await readData();
+    const orders = await readData<Order[]>(ordersFilePath);
     const order = orders.find(o => o.id === params.id);
 
     if (!order) {
@@ -57,7 +66,7 @@ const applicationDataSchema = z.object({
 
 const patchSchema = z.object({
   total: z.string().optional(),
-  status: z.enum(['申请中', '待确认', '排队中', '制作中', '取消中', '已发货', '已完成', '已取消']).optional(),
+  status: z.enum(['申请中', '待确认', '已确认', '排队中', '制作中', '取消中', '已发货', '已完成', '已取消']).optional(),
   shippingTrackingId: z.string().optional().nullable(),
   applicationData: applicationDataSchema,
   shippingAddress: z.string().optional(),
@@ -71,14 +80,41 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ message: 'Invalid data', errors: validation.error.errors }, { status: 400 });
     }
 
-    let orders = await readData();
+    let orders = await readData<Order[]>(ordersFilePath);
     const index = orders.findIndex(o => o.id === params.id);
 
     if (index === -1) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
 
-    orders[index] = { ...orders[index], ...validation.data };
+    const originalOrder = { ...orders[index] };
+    const updatedOrder = { ...originalOrder, ...validation.data };
+    
+    // Check if status changed to '待确认' for the first time
+    if (originalOrder.status !== '待确认' && updatedOrder.status === '待确认') {
+       if (updatedOrder.orderType === '委托订单') {
+         // Send confirmation email
+         try {
+            const contracts = await readData<Contracts>(contractsFilePath);
+            const userEmail = updatedOrder.applicationData?.email;
+            
+            if(contracts.commissionConfirmationEmail && userEmail) {
+                let emailHtml = contracts.commissionConfirmationEmail.replace('{productName}', updatedOrder.productName);
+
+                await sendEmail({
+                    to: userEmail,
+                    from: 'notification@suitopia.club',
+                    subject: `您的委托申请已通过初审！`,
+                    html: emailHtml
+                });
+            }
+         } catch(e) {
+            console.error("Failed to send commission confirmation email:", e);
+         }
+       }
+    }
+    
+    orders[index] = updatedOrder;
     await writeData(orders);
 
     return NextResponse.json(orders[index]);
@@ -90,7 +126,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    let orders = await readData();
+    let orders = await readData<Order[]>(ordersFilePath);
     const originalLength = orders.length;
     const filteredOrders = orders.filter(o => o.id !== params.id);
 

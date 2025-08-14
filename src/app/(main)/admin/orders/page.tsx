@@ -35,6 +35,7 @@ import { useTheme } from '@/context/ThemeContext';
 const lightStatusStyles: { [key: string]: string } = {
   '申请中': 'text-blue-800',
   '待确认': 'text-cyan-800',
+  '已确认': 'text-teal-800',
   '排队中': 'text-gray-800',
   '制作中': 'text-purple-800',
   '取消中': 'text-orange-800',
@@ -46,6 +47,7 @@ const lightStatusStyles: { [key: string]: string } = {
 const darkStatusStyles: { [key: string]: string } = {
   '申请中': 'text-blue-300',
   '待确认': 'text-cyan-300',
+  '已确认': 'text-teal-300',
   '排队中': 'text-gray-300',
   '制作中': 'text-purple-300',
   '取消中': 'text-orange-300',

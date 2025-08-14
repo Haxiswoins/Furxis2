@@ -1,5 +1,5 @@
 
-import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries } from '@/types';
+import type { Character, CommissionOption, Order, ApplicationData, SiteContent, CommissionStyle, CharacterSeries, Contracts } from '@/types';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
 // Helper function for API requests
@@ -32,6 +32,16 @@ export async function getSiteContent(): Promise<SiteContent | null> {
 export async function saveSiteContent(content: SiteContent): Promise<void> {
     await fetchAPI('/site-content', { method: 'POST', body: JSON.stringify(content) });
 }
+
+// Contracts
+export async function getContracts(): Promise<Contracts | null> {
+    return fetchAPI('/contracts');
+}
+
+export async function saveContracts(contracts: Contracts): Promise<void> {
+    await fetchAPI('/contracts', { method: 'POST', body: JSON.stringify(contracts) });
+}
+
 
 // Character Series
 export async function getCharacterSeries(): Promise<CharacterSeries[]> {
@@ -192,4 +202,8 @@ export async function cancelOrder(orderId: string, reason: string): Promise<void
 
 export async function reinstateOrder(orderId: string): Promise<void> {
     await fetchAPI(`/orders/${orderId}/reinstate`, { method: 'POST' });
+}
+
+export async function confirmCommissionOrder(orderId: string): Promise<Order> {
+    return fetchAPI(`/orders/${orderId}/confirm`, { method: 'POST' });
 }

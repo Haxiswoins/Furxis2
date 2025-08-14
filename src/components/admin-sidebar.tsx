@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, PawPrint, ShoppingCart, LogOut, LayoutDashboard, Settings, Package, Component, Layers } from 'lucide-react';
+import { Home, PawPrint, ShoppingCart, LogOut, LayoutDashboard, Settings, Package, Component, Layers, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,7 @@ const navItems = [
   { href: '/admin/commissions', label: '委托选项', icon: ShoppingCart },
   { href: '/admin/commission-styles', label: '委托样式', icon: Component },
   { href: '/admin/content', label: '网站内容', icon: Settings },
+  { href: '/admin/contracts', label: '合同管理', icon: FileText },
 ];
 
 export default function AdminSidebar() {
@@ -55,7 +57,7 @@ export default function AdminSidebar() {
     <aside className="h-full w-64 bg-card border-r flex flex-col">
       <div className="p-6">
         <Link href="/">
-           <h1 className="text-2xl font-headline cursor-pointer hover:text-primary transition-colors duration-300 font-bold">管理后台</h1>
+           <h1 className="text-2xl font-headline font-bold cursor-pointer hover:text-primary transition-colors duration-300">管理后台</h1>
         </Link>
       </div>
       <nav className="flex-1 px-4 space-y-2">
