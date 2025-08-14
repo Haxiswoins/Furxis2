@@ -1,0 +1,15 @@
+{
+  "commissionTitle": "委托申请",
+  "commissionDescription": "为您量身定制。",
+  "commissionImageUrl": "https://placehold.co/600x800.png",
+  "adoptionTitle": "设定领养",
+  "adoptionDescription": "领养一个预先设计的角色。",
+  "adoptionImageUrl": "https://placehold.co/600x800.png",
+  "adoptionPageDescription": "1",
+  "commissionPageDescription": "1",
+  "adminEmail": "2651550221@qq.com",
+  "sunriseHour": 6,
+  "sunsetHour": 12,
+  "homeBackgroundImageUrl": null,
+  "contactInfo": "您好，若有任何需要，您可以通过邮箱haxiswoins@qq.com联系我们，我们将会在收到邮件后的第一时间回复您。"
+}

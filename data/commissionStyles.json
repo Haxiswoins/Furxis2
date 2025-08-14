@@ -1,0 +1,38 @@
+[
+  {
+    "id": "style_1",
+    "commissionOptionId": "comm_1",
+    "name": "标准半身",
+    "price": "￥8000 起",
+    "description": "我们的标准半身兽装，",
+    "imageUrl": "https://placehold.co/600x800.png",
+    "tags": [
+      "标准",
+      "入门推荐"
+    ]
+  },
+  {
+    "id": "style_2",
+    "commissionOptionId": "comm_2",
+    "name": "标准全身",
+    "price": "￥15000 起",
+    "description": "完整的全身兽装，使用耐用且舒适的材料，为您提供全面的沉浸式体验。",
+    "imageUrl": "https://placehold.co/600x800.png",
+    "tags": [
+      "标准",
+      "全身"
+    ]
+  },
+  {
+    "id": "style_3",
+    "commissionOptionId": "comm_2",
+    "name": "贴身全身",
+    "price": "￥18000 起",
+    "description": "采用更具弹性的材料和剪裁工艺，打造完美贴合您身形的全身兽装，突显角色曲线。",
+    "imageUrl": "https://placehold.co/600x800.png",
+    "tags": [
+      "贴合身形",
+      "高级"
+    ]
+  }
+]

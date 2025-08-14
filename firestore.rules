@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is an admin by email
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@example.com';
+    }
+
+    // Allow public read and list for characters and commission options
+    match /characters/{characterId} {
+      allow read, list;
+      allow write: if isAdmin();
+    }
+    
+    match /commissionOptions/{optionId} {
+      allow read, list;
+      allow write: if isAdmin();
+    }
+
+    // Site content is readable by anyone, but only writable by admins
+    match /siteContent/{contentId} {
+      allow read;
+      allow write: if isAdmin();
+    }
+
+    // Orders can only be managed by their owners or admins
+    match /orders/{orderId} {
+      allow read, update: if request.auth.uid == resource.data.userId || isAdmin();
+      allow create: if request.auth.uid != null;
+      allow delete: if isAdmin();
+    }
+  }
+}

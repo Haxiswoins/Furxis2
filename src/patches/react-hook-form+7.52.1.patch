@@ -1,0 +1,13 @@
+patch-package
+--- a/node_modules/react-hook-form/package.json
++++ b/node_modules/react-hook-form/package.json
+@@ -62,7 +62,7 @@
+     "access": "public"
+   },
+   "peerDependencies": {
+-    "react": "^16.8.0 || ^17 || ^18 || ^19"
++    "react": "*"
+   },
+   "dependencies": {
+     "@babel/runtime": "^7.23.5"
+

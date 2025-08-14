@@ -1,0 +1,23 @@
+
+[
+    {
+        "id": "comm_1",
+        "name": "半身兽装",
+        "category": "定制委托",
+        "price": "￥8000 起",
+        "status": "开放中",
+        "imageUrl": "https://placehold.co/600x800.png",
+        "tags": ["高质量", "定制头部", "爪子"],
+        "description": "包括一个完全定制的头部，一对爪子和一条尾巴。适合那些想要开始进入兽装世界的新人。"
+    },
+    {
+        "id": "comm_2",
+        "name": "全身兽装",
+        "category": "定制委托",
+        "price": "￥15000 起",
+        "status": "开放中",
+        "imageUrl": "https://placehold.co/600x800.png",
+        "tags": ["全套定制", "沉浸式体验", "高级材料"],
+        "description": "从头到脚的完整定制体验，包括身体服、脚爪和所有细节。为您打造完美的第二个自我。"
+    }
+]

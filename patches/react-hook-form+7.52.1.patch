@@ -1,0 +1,11 @@
+patch-package
+--- a/node_modules/react-hook-form/package.json
++++ b/node_modules/react-hook-form/package.json
+@@ -93,6 +93,6 @@
+     "react-dom": ">=16.8.0"
+   },
+   "peerDependencies": {
+-    "react": "^16.8.0 || ^17 || ^18 || ^19"
++    "react": "^16.8.0 || ^17 || ^18 || ^19 || 19.0.0-rc-f994737d14-20240522"
+   }
+ }

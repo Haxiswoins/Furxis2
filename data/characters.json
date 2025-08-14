@@ -1,0 +1,29 @@
+
+[
+  {
+    "id": "char_1",
+    "seriesId": "series_1",
+    "name": "星尘",
+    "species": "龙",
+    "price": "5200.00",
+    "imageUrl": "https://placehold.co/600x800.png",
+    "imageUrl1": "https://placehold.co/800x600.png",
+    "imageUrl2": "https://placehold.co/800x600.png",
+    "tags": ["幻想", "蓝色", "神秘"],
+    "description": "星尘是一条来自宇宙深处的龙，它的鳞片如同夜空中的星辰，闪烁着神秘的光芒。性格温和而充满智慧。",
+    "applicants": 3
+  },
+  {
+    "id": "char_2",
+    "seriesId": "series_1",
+    "name": "绯红",
+    "species": "狐狸",
+    "price": "4800.00",
+    "imageUrl": "https://placehold.co/600x800.png",
+    "imageUrl1": "https://placehold.co/800x600.png",
+    "imageUrl2": "https://placehold.co/800x600.png",
+    "tags": ["可爱", "敏捷", "红色"],
+    "description": "绯红是一只热情似火的九尾狐，以其敏捷的身手和恶作剧般的性格而闻名。总是在寻找新的冒险。",
+    "applicants": 5
+  }
+]
