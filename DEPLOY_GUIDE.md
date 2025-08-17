@@ -67,20 +67,15 @@ NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
 # NASA APOD API Key (获取地址: https://api.nasa.gov/)
 # 这个密钥现在是后端服务获取每日天文图所必需的。没有它，网站封面将无法显示。
-NEXT_PUBLIC_NASA_API_KEY="23OevMgRUnGTKdJ5DvwBx2cSpXLF5SrpTAuIuEwb"
+
 
 # Firebase 项目配置
 # 您可以从 Firebase 控制台的项目设置中找到这些值
-NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyCJjPjbZQZ09wEGyOOgdGAy7z_GUcGHMNU"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="suitopia-ft2z7.firebaseapp.com"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="suitopia-ft2z7"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="suitopia-ft2z7.firebasestorage.app"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="707178738482"
-NEXT_PUBLIC_FIREBASE_APP_ID="1:707178738482:web:9d089d71aea7ec9ab75d2b"
+
 
 # Resend API Key for Email Notifications (获取地址: https://resend.com/)
 # 这个密钥是发送邮件通知功能所必需的。
-RESEND_API_KEY="re_Vtme2ydt_JvmGrAWzFSX2C51AY1wUTPdi"
+
 
     ```
     > **重要提示**: 这些密钥是应用正常运行所必需的。特别是 Firebase 的密钥，它们将您的应用与您的 Firebase 认证服务连接起来。而 NASA 的密钥则直接决定了网站封面能否成功加载。`RESEND_API_KEY` 是邮件通知功能的核心。
